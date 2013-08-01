@@ -1284,7 +1284,12 @@ namespace DeedDrafter
 
     public string RotationUnit
     {
-      get { return (string)System.Windows.Application.Current.FindResource(_configuration.EntryFormat == EnumBearingFormat.eDD ? "strAngleUnitDD" : "strAngleUnitDMS"); }
+      get
+      {
+        if (_configuration == null)
+          return "";
+        return (string)System.Windows.Application.Current.FindResource(_configuration.EntryFormat == EnumBearingFormat.eDD ? "strAngleUnitDD" : "strAngleUnitDMS"); 
+      }
     }
 
     public string Rotation
