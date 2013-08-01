@@ -192,7 +192,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DeedDrafterConfiguration.xml" />
+    <Content Include="DeedDrafterConfiguration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Images\HelpSystemBlue16.png" />
   </ItemGroup>
   <ItemGroup>
