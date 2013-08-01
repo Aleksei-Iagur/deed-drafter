@@ -747,7 +747,7 @@ namespace DeedDrafter
       ObservableCollection<ParcelLineRow> parcelRecordData = ParcelLines.ItemsSource as ObservableCollection<ParcelLineRow>;
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
 
-      double srScale = _xmlConfiguation.WebMercatorScale * (_xmlConfiguation.OutputSpatialReferenceUnitsPerMeter / _xmlConfiguation.MapSpatialReferenceUnitsPerMeter);
+      double srScale = _xmlConfiguation.WebMercatorScale / (_xmlConfiguation.OutputSpatialReferenceUnitsPerMeter / _xmlConfiguation.MapSpatialReferenceUnitsPerMeter);
       double scaleValue = parcelData.ScaleValue * srScale; 
       double rotationValue = parcelData.RotationValue;
 
