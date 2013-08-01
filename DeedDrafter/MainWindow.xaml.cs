@@ -233,7 +233,13 @@ namespace DeedDrafter
 
     private void Information_MouseDown(object sender, MouseButtonEventArgs e)
     {
-      System.Diagnostics.Process.Start(@"http://esriurl.com/DeedDrafter");
+      string helpFile = "Help.pdf";
+      if (System.IO.File.Exists(helpFile))
+        System.Diagnostics.Process.Start(helpFile);
+      else
+        MessageBox.Show((string)Application.Current.FindResource("strHelpFileMissing"), (string)Application.Current.FindResource("strTitle"));
+
+      // System.Diagnostics.Process.Start(@"http://esriurl.com/DeedDrafter");
     }
   }
 }
