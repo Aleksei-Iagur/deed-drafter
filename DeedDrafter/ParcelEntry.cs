@@ -70,7 +70,7 @@ namespace DeedDrafter
         OutSpatialReference = ParcelMap.SpatialReference,
         Unit = LinearUnit.Meter,
       };
-      bufferParams.Distances.Add(_xmlConfiguation.SnapTolerance * _xmlConfiguation.SpatialReferenceUnitsPerMeter);
+      bufferParams.Distances.Add(_xmlConfiguation.SnapTolerance);
       bufferParams.Features.Add(clickGraphic);
       geometryServicePointSnap.BufferAsync(bufferParams);
 
@@ -747,7 +747,7 @@ namespace DeedDrafter
       ObservableCollection<ParcelLineRow> parcelRecordData = ParcelLines.ItemsSource as ObservableCollection<ParcelLineRow>;
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
 
-      double srScale = _xmlConfiguation.WebMercatorScale / (_xmlConfiguation.OutputSpatialReferenceUnitsPerMeter / _xmlConfiguation.MapSpatialReferenceUnitsPerMeter);
+      double srScale = _xmlConfiguation.WebMercatorScale * _xmlConfiguation.OutputSpatialReferenceUnitsPerMeter;  
       double scaleValue = parcelData.ScaleValue * srScale; 
       double rotationValue = parcelData.RotationValue;
 

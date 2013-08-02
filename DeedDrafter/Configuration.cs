@@ -154,9 +154,9 @@ namespace DeedDrafter
     private double _miscloseDistanceSnap = 5;
     private string _upperFunction = "UPPER";
     private string _wildcardCharacter = "%";
-    private bool _srUnitsSet = false;
+    private bool _srMapUnitsSet = false;
     private bool _srOutputUnitsSet = false;
-    private double _srUnitsPerMeter = 1;
+    private double _srMapUnitsPerMeter = 1;
     private bool _entryUnitsSet = false;
     private double _entryUnitsPerMeter = 1;
     private EnumBearingFormat _entryFormat = EnumBearingFormat.eDMS;
@@ -215,7 +215,7 @@ namespace DeedDrafter
 
     public bool HasSpatialReferenceUnit
     {
-      get { return _srUnitsSet || _srOutputUnitsSet; }
+      get { return _srMapUnitsSet || _srOutputUnitsSet; }
     }
 
     public bool HasDatumTransformation
@@ -241,11 +241,6 @@ namespace DeedDrafter
       set { _datumTransformationForward = value; }
     }
 
-    private bool HasMapSpatialReferenceUnit
-    {
-      get { return _srUnitsSet; }
-    }
-
     private bool HasOutputSpatialReferenceUnit
     {
       get { return _srOutputUnitsSet; }
@@ -255,29 +250,29 @@ namespace DeedDrafter
     {
       set
       {
-        if (!GeometryUtil.UnitFactor(value, out _srUnitsPerMeter)) // Searches for both esriEnum and standard keywords
+        if (!GeometryUtil.UnitFactor(value, out _srMapUnitsPerMeter)) // Searches for both esriEnum and standard keywords
         {                                                          // like meters, foot, etc
-          double.TryParse(value, out _srUnitsPerMeter);
-          if (_srUnitsPerMeter <= 0)
-            _srUnitsPerMeter = 1.0;
+          double.TryParse(value, out _srMapUnitsPerMeter);
+          if (_srMapUnitsPerMeter <= 0)
+            _srMapUnitsPerMeter = 1.0;
         }
-        _srUnitsSet = true;
+        _srMapUnitsSet = true;
       }
     }
     
     public double MapSpatialReferenceUnitsPerMeter
     {
-      get { return _srUnitsPerMeter; }
+      get { return _srMapUnitsPerMeter; }
     }
 
     public double SpatialReferenceUnitsPerMeter
     {
       get 
       { 
-        if (_srUnitsSet)
-          return _srUnitsPerMeter;
-        if (_srOutputUnitsSet)
-          return _outputUnitsPerMeter;
+        if (_srOutputUnitsSet)            // Output units needs to have priority 
+          return _outputUnitsPerMeter;    // over the map units (_srMapUnitsSet)
+        if (_srMapUnitsSet)               // Otherwise, area cal and XML will be 
+          return _srMapUnitsPerMeter;        // written wrong.
         return 1.0; 
       }
     }
@@ -396,13 +391,14 @@ namespace DeedDrafter
     {
       set
       {
-        if (!GeometryUtil.UnitFactor(value, out _entryUnitsPerMeter))
+        if (GeometryUtil.UnitFactor(value, out _entryUnitsPerMeter))
+          _entryUnitsSet = true;
+        else
         {
           double.TryParse(value, out _entryUnitsPerMeter);
           if (_entryUnitsPerMeter <= 0)
             _entryUnitsPerMeter = 1.0;
         }
-        _entryUnitsSet = true;
       }
     }
 
@@ -411,7 +407,7 @@ namespace DeedDrafter
       get 
       {
         if (!_entryUnitsSet)
-          return _srUnitsPerMeter;
+          return _outputUnitsPerMeter;
         return _entryUnitsPerMeter;
       }
     }
@@ -435,14 +431,8 @@ namespace DeedDrafter
     {
       distanceUnit = GeometryUtil.GetUnit(EntryUnitsPerMeter, false);
       AreaUnit = GeometryUtil.DefaultAreaUnit(EntryUnitsPerMeter);
-      if (_entryUnitsSet)
-      {
-        distanceUnit = GeometryUtil.GetUnit(_entryUnitsPerMeter, false);
-        areaUnit = GeometryUtil.GetArea(AreaUnit, false);
-        return true;
-      }
-
-      return false;
+      areaUnit = GeometryUtil.GetArea(AreaUnit, false);
+      return true;
     }
 
     public string IdentifyURL

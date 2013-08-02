@@ -33,5 +33,5 @@
 	<geometryServer url="http://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer" snapTolerance="10"/>
 
 	<!--7. Define the entry units for distances and directions, and specify the misclose conditions for closing the final course to the point of beginning.-->
-	<parcelEntry distance="Foot_US" angular="DMS" miscloseRatioSnap="5000" miscloseDistanceSnap="5"/>  
+	<parcelEntry angular="DMS" miscloseRatioSnap="5000" miscloseDistanceSnap="5"/>  
 </deedDrafter>

@@ -1093,7 +1093,8 @@ namespace DeedDrafter
         // Force XAML to reread document types that are stored in configuration
         NotifyPropertyChanged("DocumentEntries");
 
-        if ((_distanceUnit == "") && _configuration.SetupUnits(ref _distanceUnit, ref _areaUnit))
+        if ((_distanceUnit == "" || _areaUnit == "") && 
+             _configuration.SetupUnits(ref _distanceUnit, ref _areaUnit))
         {
           NotifyPropertyChanged("DistanceUnit");
           NotifyPropertyChanged("AreaUnit");
