@@ -1114,7 +1114,7 @@ namespace DeedDrafter
         if (version == null)
           return "";
         return (string)Application.Current.FindResource("strVersion") + " " + 
-               version.Major + "." + version.Minor;
+               version.Major + "." + version.Minor + "." + version.Build;
       }
     }
 
