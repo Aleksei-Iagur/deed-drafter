@@ -1113,8 +1113,8 @@ namespace DeedDrafter
         Version version = appAssembly.GetName().Version;
         if (version == null)
           return "";
-        return (string)Application.Current.FindResource("strVersion") + " " + 
-               version.Major + "." + version.Minor + "." + version.Build;
+        return (string)Application.Current.FindResource("strVersion") + " " +
+               version.Major + "." + version.Minor + "." + version.Build + "." + version.MinorRevision;
       }
     }
 
