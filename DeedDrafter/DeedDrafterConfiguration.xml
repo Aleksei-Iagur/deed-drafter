@@ -12,16 +12,16 @@
 	<application title="Esri Deed Drafter" mailTo="" searchLabel="Search for APN or Subdivision/Condo Name"/>
 	
 	<!--2. Specify the basemap layer URL -->
-	<baseLayer url="http://localgovtemplates.esri.com/ArcGIS/rest/services/ParcelIndustry/MapServer"/>
+	<baseLayer url="http://tryitlive.arcgis.com/arcgis/rest/services/TaxParcelMI/MapServer"/>
 	
 	<!--3. Set the initial map extent, defined in the coordinate system of the base layer.-->
 	<extent xMin="-9271700" yMin="5245690" xMax="-9271000" yMax="5246300"/> 
 	
 	<!--4. Specify the operational layers that will support the identify, search, and snap functions.-->	
 	<operationalLayers>	
-        <operationalLayer id="1" draw="False" snap="True" tooltip="Tax Parcel: APN,Sub"  identify="True"   name="Tax Parcel"         searchFields="PARCELID,CNVYNAME" url="http://services.arcgis.com/b6gLrKHqgkQb393u/arcgis/rest/services/DeedDrafter/FeatureServer"/>
-		<operationalLayer id="0" draw="False" snap="True" tooltip="Control: Point Label" identify="True"   name="Control Points"     searchFields="Local1"            url="http://services.arcgis.com/b6gLrKHqgkQb393u/arcgis/rest/services/DeedDrafter/FeatureServer"/>		
-		<operationalLayer id="1" draw="True"  snap="True"  url="http://maps1.arcgisonline.com/ArcGIS/rest/services/NGS_Survey_Control_Points/MapServer"/>    			
+        <operationalLayer id="0" draw="False" snap="True" tooltip="Tax Parcel: APN,Sub"  identify="True"   name="Tax Parcel"         searchFields="PARCELID,CNVYNAME" url="http://tryitlive.arcgis.com/arcgis/rest/services/TaxParcelQuery/MapServer"/>
+		    <operationalLayer id="0" draw="False" snap="True" tooltip="Control: Point Label" identify="True"   name="Control Points"     searchFields="Local1"            url="http://services.arcgis.com/b6gLrKHqgkQb393u/arcgis/rest/services/DeedDrafter/FeatureServer"/>		
+		    <operationalLayer id="1" draw="True"  snap="True"  url="http://maps1.arcgisonline.com/ArcGIS/rest/services/NGS_Survey_Control_Points/MapServer"/>    			
 	</operationalLayers>
 	  
   <!--5. Enter the spatial reference.-->  
