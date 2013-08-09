@@ -3,7 +3,7 @@ DeedDrafter
 
 Provides the ability to enter deeds, check closure, and import data into the cadastral editor via XML.
 
-[![Image of Deed Drafter application](https://raw.github.com/ArcGIS/DeedDrafter/master/DeedDrafter.png "Deed Drafter application")]
+![Image of Deed Drafter application](https://raw.github.com/ArcGIS/DeedDrafter/master/DeedDrafter.png "Deed Drafter application")
 
 ## Features
 
@@ -77,7 +77,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 A copy of the license is available in the repository's
-[license.txt](https://raw.github.com/Esri/DeedDrafter/master/license.txt) file.
+[license.txt](https://raw.github.com/Esri/DeedDrafter/master/LICENSE) file.
 
 
 [](Esri Tags: Local Government Land Records Deed Drafter)
