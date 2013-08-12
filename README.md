@@ -1,7 +1,7 @@
 DeedDrafter
 ===========
 
-Provides the ability to enter deeds, check closure, and import data into the cadastral editor via XML.
+Deed Drafter is an ArcGIS Runtime application that helps mapping technicians enter metes-and-bounds descriptions from deeds and other property descriptions and check for closure errors.
 
 ![Image of Deed Drafter application](https://raw.github.com/ArcGIS/DeedDrafter/master/DeedDrafter.png "Deed Drafter application")
 
