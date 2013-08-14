@@ -80,5 +80,5 @@ A copy of the license is available in the repository's
 [LICENSE.txt](https://raw.github.com/Esri/deed-drafter/master/LICENSE.txt) file.
 
 
-[](Esri Tags: Local Government Land Records Deed Drafter WPF)
+[](Esri Tags: Local-Government Local Government Land Records Deed Drafter WPF)
 [](Esri Language: C-Sharp)
