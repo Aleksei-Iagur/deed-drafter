@@ -1,14 +1,14 @@
-DeedDrafter
-===========
+deed-drafter
+============
 
 Deed Drafter is an ArcGIS Runtime application that helps mapping technicians enter metes-and-bounds descriptions from deeds and other property descriptions and check for closure errors.
 
-![Image of Deed Drafter application](https://raw.github.com/ArcGIS/DeedDrafter/master/DeedDrafter.png "Deed Drafter application")
+![Image of Deed Drafter application](https://raw.github.com/Esri/deed-drafter/master/deed-drafter.png "Deed Drafter application")
 
 ## Features
 
 * Navigate- Search and identify parcels
-* Parcel Entry - Enter parcel description
+* Parcel entry - Enter parcel description
 * Parcel tools - Scale and rotate entered parcel on map
 * Share - Save to email parcel description via Cadastral XML format
 
@@ -57,7 +57,8 @@ Find a bug or want to request a new feature?  Please let us know by submitting a
 
 ## Contributing
 
-Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
+Esri welcomes contributions from anyone and everyone.
+Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
 ## Licensing
 
@@ -76,8 +77,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 A copy of the license is available in the repository's
-[license.txt](https://raw.github.com/Esri/DeedDrafter/master/LICENSE) file.
+[LICENSE.txt](https://raw.github.com/Esri/deed-drafter/master/LICENSE.txt) file.
 
 
-[](Esri Tags: Local Government Land Records Deed Drafter)
-[](Esri Language: C# WPF)
+[](Esri Tags: Local Government Land Records Deed Drafter WPF)
+[](Esri Language: C-Sharp)
