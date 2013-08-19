@@ -193,15 +193,6 @@ namespace DeedDrafter
         {
           _foundParcel = true;
 
-          int oid = -1;
-          // implement same case insensitive solution as below
-          foreach (var att in feature.Attributes)
-            if (att.Key.ToLower() == "objectid")
-            {
-              oid = (int)att.Value;
-              break;
-            }
-          
           string name = "";
           foreach (string fieldName in layerDefn.DisplayFields)
           {
@@ -237,7 +228,7 @@ namespace DeedDrafter
       if (_queryAttributeCount == _queryAttributeComplete)
       {
         Loading.Visibility = System.Windows.Visibility.Collapsed; // spinning arrow
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
       }
     }
 
@@ -262,13 +253,16 @@ namespace DeedDrafter
       if ((index < 0) || (index >= findResults.Count()))
         return;
 
-      if (ParcelMap.SpatialReference.Equals(findResults[index].Geometry.SpatialReference))
+      if (findResults[index].Geometry != null)
       {
-        ParcelMap.PanTo(findResults[index].Geometry);
-        ParcelMap.ZoomTo(findResults[index].Geometry.Extent.Expand(1.5));
+        if (ParcelMap.SpatialReference.Equals(findResults[index].Geometry.SpatialReference))
+        {
+          ParcelMap.PanTo(findResults[index].Geometry);
+          ParcelMap.ZoomTo(findResults[index].Geometry.Extent.Expand(1.5));
+        }
+        else
+          MessageBox.Show((string)Application.Current.FindResource("strQueryServiceSRNotEqual"), (string)Application.Current.FindResource("strNavigationFailed"));
       }
-      else
-        MessageBox.Show((string)Application.Current.FindResource("strQueryServiceSRNotEqual"), (string)Application.Current.FindResource("strNavigationFailed"));
     }
     #endregion Parcel Find
   }

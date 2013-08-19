@@ -133,7 +133,7 @@ namespace DeedDrafter
         }
         // else no snapping.
 
-        AddLineGraphics();      // Redraw so we have snap graphic shown
+        CalculateAndAddLineGraphics();      // Redraw so we have snap graphic shown
       }
       else                      // BearingDistanceToPoint returns false if id = -1
         _srSnapPointId = -1;
@@ -209,7 +209,6 @@ namespace DeedDrafter
       query.ReturnGeometry = true;
       query.OutSpatialReference = ParcelMap.SpatialReference;
       query.Geometry = bufferGraphic.Geometry;
-      query.OutFields.Add("OBJECTID");
 
       System.Diagnostics.Debug.WriteLine("Async: Buffered geometry returned. Now getting features..." + layer);
       queryTask.ExecuteAsync(query, searchDistance);
@@ -246,8 +245,6 @@ namespace DeedDrafter
       if (args.FeatureSet.Features.Count > 0)
         foreach (Graphic feature in args.FeatureSet.Features)
         {
-          int oid = (int)feature.Attributes["OBJECTID"];
-
           // test type of feature, and test it's end points.
 
           if (feature.Geometry is ESRI.ArcGIS.Client.Geometry.Polygon)
@@ -272,7 +269,7 @@ namespace DeedDrafter
         }
       System.Diagnostics.Debug.WriteLine("Async: Number of objects cached: " + args.FeatureSet.Features.Count.ToString());
 
-      AddLineGraphics();  // We need to redraw, so we get the right snap marker
+      CalculateAndAddLineGraphics();  // We need to redraw, so we get the right snap marker
     }
 
     private void CancelScaleRotate()
@@ -286,7 +283,7 @@ namespace DeedDrafter
       _srSnapPointId = -1;
 
       if (redraw)
-        AddLineGraphics();  // Redraw so we don't have snap graphic shown
+        CalculateAndAddLineGraphics();  // Redraw so we don't have snap graphic shown
     }
 
     double _oldRotation = 0;
@@ -381,7 +378,7 @@ namespace DeedDrafter
       // Otherwise runtime does not process mouse up and over flashes.
       if ((parcelData.ScaleValue != _moveScale) || (parcelData.RotationValue != _moveRotation))
       {
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
         _moveScale = parcelData.ScaleValue;
         _moveRotation = parcelData.RotationValue;
       }
@@ -462,7 +459,7 @@ namespace DeedDrafter
       BindingExpression bindingExp = RotationText.GetBindingExpression(TextBox.TextProperty);
       bindingExp.UpdateSource();
 
-      AddLineGraphics();
+      CalculateAndAddLineGraphics();
     }
 
     private void Scale_KeyUp(object sender, KeyEventArgs e)
@@ -476,7 +473,7 @@ namespace DeedDrafter
       BindingExpression bindingExp = ScaleText.GetBindingExpression(TextBox.TextProperty);
       bindingExp.UpdateSource();
 
-      AddLineGraphics();
+      CalculateAndAddLineGraphics();
     }
 
     private void ToolBar_SizeChanged(object sender, SizeChangedEventArgs e)

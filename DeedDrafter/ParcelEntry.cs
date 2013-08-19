@@ -15,6 +15,7 @@ using ESRI.ArcGIS.Client.Tasks;
 using Utilities;
 using PointDictionary = System.Collections.Generic.Dictionary<System.Int32, ESRI.ArcGIS.Client.Geometry.MapPoint>;
 using ESRI.ArcGIS.Client.Geometry;
+using System.Diagnostics;
 
 namespace DeedDrafter
 {
@@ -47,7 +48,7 @@ namespace DeedDrafter
       GeometryService geometryServicePointSnap = new GeometryService(_xmlConfiguation.GeometryServerUrl);
       if (geometryServicePointSnap == null) 
       {
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
         return;
       }
       geometryServicePointSnap.BufferCompleted += GeometryService_PointBufferCompleted;
@@ -81,10 +82,10 @@ namespace DeedDrafter
       if (IsWebMercator() && _xmlConfiguation.WebMercatorScale == 1)
       {
         if (_calculatedPoints.Count == 0)
-          AddLineGraphics(true);
+          CalculateAndAddLineGraphics(true);
       }
       else
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
     }
 
     void ResetGrid()
@@ -235,7 +236,6 @@ namespace DeedDrafter
       query.ReturnGeometry = true;
       query.OutSpatialReference = ParcelMap.SpatialReference;
       query.Geometry = queryResult.BufferGraphic;
-      query.OutFields.Add("OBJECTID");
 
       queryTaskPoint.ExecuteAsync(query, queryResultContainer);
 
@@ -312,7 +312,7 @@ namespace DeedDrafter
         // if we already have a WebMercatorScale, lets assume thats ok to begin with, and we will
         // get a correction when the services returns (speed things up).
         if (!isWebMercator && redraw || _xmlConfiguation.WebMercatorScale != 1)
-          AddLineGraphics();
+          CalculateAndAddLineGraphics();
       }
     }
 
@@ -428,6 +428,7 @@ namespace DeedDrafter
         geometryServiceProject.ProjectAsync(graphicList, ParcelMap.SpatialReference, testLength);
     }
 
+    static bool _showSRError = true;
     void GeometryService_CalculateWebMercatorScale2(object sender, GraphicsEventArgs args)
     {
       if (args == null || args.Results == null || args.Results.Count != 2)
@@ -436,14 +437,26 @@ namespace DeedDrafter
       MapPoint pointA = (MapPoint)args.Results[0].Geometry;
       MapPoint pointB = (MapPoint)args.Results[1].Geometry;
 
-      _xmlConfiguation.WebMercatorScale = (GeometryUtil.LineLength(pointA, pointB) / (double)args.UserState) /
-                                          _xmlConfiguation.SpatialReferenceUnitsPerMeter; 
-      AddLineGraphics();
+      // If the SR in the configuration file is formatted wrongly, we may ended up with a GCS SR. 
+      // This will produce an error, since we add 250 the the Y
+      if (_showSRError && double.IsNaN(pointB.X))
+      {
+        MessageBox.Show((string)Application.Current.FindResource("strSpatialReferenceError"), (string)Application.Current.FindResource("strTitle"));
+        _showSRError = false;
+      }
+
+      double scale = (GeometryUtil.LineLength(pointA, pointB) / (double)args.UserState) /
+                                          _xmlConfiguation.SpatialReferenceUnitsPerMeter;
+
+      Debug.Assert(!double.IsNaN(scale));
+      _xmlConfiguation.WebMercatorScale = double.IsNaN(scale) ? 1.0 : scale;
+
+      CalculateAndAddLineGraphics();
     }
 
     private void GeometryService_FailedWebMercatorScale(object sender, TaskFailedEventArgs args)
     {
-      AddLineGraphics();
+      CalculateAndAddLineGraphics();
       GeometryService_Failed(sender, args);
     }
 
@@ -606,7 +619,7 @@ namespace DeedDrafter
       BindingExpression bindingExp = textBox.GetBindingExpression(TextBox.TextProperty);
       bindingExp.UpdateSource();
 
-      AddLineGraphics();           
+      CalculateAndAddLineGraphics();           
     }
 
     private void MapEdit_KeyUp(object sender, KeyEventArgs e)
@@ -616,7 +629,7 @@ namespace DeedDrafter
         UIElement uiElement = e.OriginalSource as UIElement;
         uiElement.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
       }
     }
 
@@ -624,7 +637,7 @@ namespace DeedDrafter
     {
       if (e.Key == Key.Enter)
       {
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
 
         ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
         if (parcelData.IsLastRowSelected())
@@ -715,7 +728,7 @@ namespace DeedDrafter
     // This routine calculates points, and creates line graphics.
     // It's the work horse the the data entry grid.
 
-    private void AddLineGraphics(bool startPointOnly = false)   
+    private void CalculateAndAddLineGraphics(bool startPointOnly = false)   
     {
       if (_originPoint == null)  // We need to have an origin point placed down
         return;                  // before we start this routine.
@@ -747,7 +760,12 @@ namespace DeedDrafter
       ObservableCollection<ParcelLineRow> parcelRecordData = ParcelLines.ItemsSource as ObservableCollection<ParcelLineRow>;
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
 
-      double srScale = _xmlConfiguation.WebMercatorScale * _xmlConfiguation.OutputSpatialReferenceUnitsPerMeter;  
+      double srScale;
+      if (IsWebMercator() && _xmlConfiguation.WebMercatorScale != 1.0)
+        srScale = _xmlConfiguation.WebMercatorScale * _xmlConfiguation.OutputSpatialReferenceUnitsPerMeter;
+      else
+        srScale = _xmlConfiguation.OutputSpatialReferenceUnitsPerMeter / _xmlConfiguation.MapSpatialReferenceUnitsPerMeter;
+
       double scaleValue = parcelData.ScaleValue * srScale; 
       double rotationValue = parcelData.RotationValue;
 
@@ -1311,9 +1329,6 @@ namespace DeedDrafter
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
       _xmlConfiguation.EntryFormat = parcelData.BearingFormat;
 
-//    if (_xmlConfiguation.HasSpatialReferenceUnit)
-//      return;
-
       string lastUnit = "";
       foreach (Layer layer in ParcelMap.Layers)
       {
@@ -1340,7 +1355,7 @@ namespace DeedDrafter
                           (string)Application.Current.FindResource("strTitle"), MessageBoxButton.YesNo) == MessageBoxResult.Yes)
       {
         ResetGrid();
-        AddLineGraphics();
+        CalculateAndAddLineGraphics();
       }
     }
 
@@ -1457,7 +1472,7 @@ namespace DeedDrafter
                 System.Diagnostics.Debug.Assert(false);  // why are we getting this area? Anything null?
               }
             }
-            AddLineGraphics();
+            CalculateAndAddLineGraphics();
           }
         }
       }
@@ -1552,7 +1567,7 @@ namespace DeedDrafter
       if (e.Key == Key.Enter)        // if the key is handled, we will not get this.
       {
         ParcelLines.CommitEdit();    // Commit changes to data structure
-        AddLineGraphics();           // and draw graphics for them.
+        CalculateAndAddLineGraphics();           // and draw graphics for them.
       }
       // if the user has pressed enter on <distance> or <parameter2> then 
       // we allowed the grid to move a cell down (not to the right).
@@ -1606,7 +1621,7 @@ namespace DeedDrafter
                 ParcelLineRow newRow = new ParcelLineRow(ref _xmlConfiguation);
                 parcelRecordData.Insert(newIndex, newRow);
               }
-              AddLineGraphics();
+              CalculateAndAddLineGraphics();
             }
             _targetRow = null;
           }

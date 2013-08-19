@@ -4,6 +4,13 @@ using System.Windows.Input;
 using ESRI.ArcGIS.Client;
 using ESRI.ArcGIS.Client.Tasks;
 
+/* DeedDrafter revisions:
+ * 
+ * 10.2.0.0  Initial Release
+ * 10.2.0.1  Correct line scaling when base map was not in meters or WebMercator
+ * 
+ */
+
 namespace DeedDrafter
 {
   /// <summary>
@@ -203,7 +210,7 @@ namespace DeedDrafter
 
     private void GeometryService_Failed(object sender, TaskFailedEventArgs args)
     {
-      MessageBox.Show((string)Application.Current.FindResource("strGeometryServiceFailed") + ": " + args.Error);
+      MessageBox.Show((string)Application.Current.FindResource("strGeometryServiceFailed") + ": " + args.Error, (string)Application.Current.FindResource("strTitle"));
       CancelScaleRotate();
     }
 

@@ -49,5 +49,6 @@
   <sys:String x:Key="strQueryServiceSRNotEqual">The search layer's spatial reference does not match the map's spatial reference. Please check that the spatial reference string in the configuration file does not contain extra spaces or line-feeds.</sys:String>
   <sys:String x:Key="strQueryServiceSupport">Ensure service supports query operations.</sys:String>
   <sys:String x:Key="strHelpFileMissing">Help file is missing.</sys:String>
+  <sys:String x:Key="strSpatialReferenceError">Spatial Reference not configured correctly.</sys:String>
   
 </ResourceDictionary>

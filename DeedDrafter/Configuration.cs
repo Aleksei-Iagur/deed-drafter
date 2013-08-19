@@ -43,7 +43,10 @@ namespace DeedDrafter
         displayFields.Add(trimed);
         loadDisplayNamesFromSearch = false;
         if (!fields.ContainsKey(trimed))
+        {
           allFields.Add(trimed);
+          fields.Add(trimed, 0);
+        }
       }
       foreach (string field in layerSearchFields.Split(','))
       {
@@ -54,13 +57,18 @@ namespace DeedDrafter
         if (loadDisplayNamesFromSearch)
           displayFields.Add(trimed);
         if (!fields.ContainsKey(trimed))
+        {
           allFields.Add(trimed);
+          fields.Add(trimed, 0);
+        }
         searchFields.Add(trimed);
       }
 
-      string oidField = "OBJECTID";
-      if (!fields.ContainsKey(oidField))
-        allFields.Add(oidField);
+//    Lets not do this, since this field can be qualified
+//
+//    string oidField = "OBJECTID";
+//    if (!fields.ContainsKey(oidField))
+//      allFields.Add(oidField);
     }
 
     public string Layer()
@@ -655,25 +663,38 @@ namespace DeedDrafter
       if ((wkt == null) || (wkt.Length == 0))
         return "";
 
-      if (!wkt.StartsWith("PROJCS["))
+      string subWkt = "PROJCS[";
+      if (!wkt.StartsWith(subWkt))
         return "";
 
+      // if we have vertical SR, we need to skip that part, as we look for the test "UNIT" from the end.
+      int braceCount = 1;
+      for (int i = 7; (i < wkt.Length) && (braceCount > 0); i++)  // start after PROJCS
+      {
+        char ch = wkt[i];
+        if (ch == '[')
+          braceCount++;
+        else if (ch == ']')
+          braceCount--;
+        subWkt += ch;
+      }
+
       string unitTag = "UNIT[";
-      int unitPos = wkt.LastIndexOf(unitTag);
+      int unitPos = subWkt.LastIndexOf(unitTag);
       if (unitPos == -1)
         return "";
       unitPos += unitTag.Length;
 
       string keyValueStr = "";
       bool endFound = false;
-      for (int i = unitPos; i < wkt.Length; i++)
+      for (int i = unitPos; i < subWkt.Length; i++)
       {
-        if (wkt[i] == ']')
+        if (subWkt[i] == ']')
         {
           endFound = true;
           break;
         }
-        keyValueStr += wkt[i];
+        keyValueStr += subWkt[i];
       }
       if (!endFound)
         return "";
