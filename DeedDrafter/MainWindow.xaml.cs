@@ -7,8 +7,9 @@ using ESRI.ArcGIS.Client.Tasks;
 /* DeedDrafter revisions:
  * 
  * 10.2.0.0  Initial Release
- * 10.2.0.1  Correct line scaling when base map was not in meters or WebMercator
- * 
+ * 10.2.0.1  Correct line scaling when base map was not in meters or WebMercator (ie, in feet)
+ *           Error 400, when operational lay does not contain OBJECTID field (ie, when it was fully qualified)
+ *           Support vertical datum => for operational layer / unit support
  */
 
 namespace DeedDrafter
