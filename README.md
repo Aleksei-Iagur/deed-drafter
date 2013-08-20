@@ -1,14 +1,14 @@
-DeedDrafter
-===========
+deed-drafter
+============
 
-Provides the ability to enter deeds, check closure, and import data into the cadastral editor via XML.
+Deed Drafter is an ArcGIS Runtime application that helps mapping technicians enter metes-and-bounds descriptions from deeds and other property descriptions and check for closure errors.
 
-[![Image of Deed Drafter application](https://raw.github.com/ArcGIS/DeedDrafter/master/DeedDrafter.png "Deed Drafter application")]
+![Image of Deed Drafter application](https://raw.github.com/Esri/deed-drafter/master/deed-drafter.png "Deed Drafter application")
 
 ## Features
 
 * Navigate- Search and identify parcels
-* Parcel Entry - Enter parcel description
+* Parcel entry - Enter parcel description
 * Parcel tools - Scale and rotate entered parcel on map
 * Share - Save to email parcel description via Cadastral XML format
 
@@ -37,7 +37,6 @@ on the ArcGIS Resource Center can guide you in the setup and configuration of th
 * ArcGIS for Desktop 10.2 - Standard or Advanced - [About](http://www.esri.com/software/arcgis/arcgis-for-desktop)
 * ArcGIS for Server 10.2 - Standard or Advanced - [About](http://www.esri.com/software/arcgis/arcgisserver)
 * Local Government Information Model - [About](http://www.arcgis.com/home/item.html?id=ae175b36c4154dda987127dff879350d)
-* Microsoft .NET Framework 4.0 available from the [Microsoft website](http://www.microsoft.com/en-us/download/details.aspx?id=30653)
 
 ## Resources
 
@@ -58,7 +57,8 @@ Find a bug or want to request a new feature?  Please let us know by submitting a
 
 ## Contributing
 
-Anyone and everyone is welcome to contribute.
+Esri welcomes contributions from anyone and everyone.
+Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
 ## Licensing
 
@@ -77,8 +77,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 A copy of the license is available in the repository's
-[license.txt](https://raw.github.com/Esri/DeedDrafter/master/license.txt) file.
+[LICENSE.txt](https://raw.github.com/Esri/deed-drafter/master/LICENSE.txt) file.
 
 
-[](Esri Tags: Local Government Land Records Deed Drafter)
-[](Esri Language: C# WPF)
+[](Esri Tags: Local-Government Local Government Land Records Deed Drafter WPF)
+[](Esri Language: C-Sharp)
