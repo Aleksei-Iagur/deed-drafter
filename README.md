@@ -3,7 +3,7 @@ deed-drafter
 
 Deed Drafter is an ArcGIS Runtime application that helps mapping technicians enter metes-and-bounds descriptions from deeds and other property descriptions and check for closure errors.
 
-![Image of Deed Drafter application](https://raw.github.com/Esri/deed-drafter/master/deed-drafter.png "Deed Drafter application")
+![Image of Deed Drafter application](deed-drafter.png "Deed Drafter application")
 
 ## Features
 
