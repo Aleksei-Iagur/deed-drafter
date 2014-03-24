@@ -3,7 +3,7 @@ deed-drafter
 
 Deed Drafter is an ArcGIS Runtime application that helps mapping technicians enter metes-and-bounds descriptions from deeds and other property descriptions and check for closure errors.
 
-![Image of Deed Drafter application](https://raw.github.com/Esri/deed-drafter/master/deed-drafter.png "Deed Drafter application")
+![Image of Deed Drafter application](deed-drafter.png "Deed Drafter application")
 
 ## Features
 
@@ -40,7 +40,7 @@ on the ArcGIS Resource Center can guide you in the setup and configuration of th
 
 ## Resources
 
-Learn more about Esri's [ArcGIS for Local Government maps and apps](http://resources.arcgis.com/en/communities/local-government/).
+Learn more about Esri's [ArcGIS for Local Government maps and apps](http://solutions.arcgis.com/local-government/).
 
 Show me a list of other [Local Government GitHub repositories](http://esri.github.io/#Local-Government).
 
@@ -77,7 +77,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 A copy of the license is available in the repository's
-[LICENSE.txt](https://raw.github.com/Esri/deed-drafter/master/LICENSE.txt) file.
+[LICENSE.txt](LICENSE.txt) file.
 
 
 [](Esri Tags: Local-Government Local Government Land Records Deed Drafter WPF)
