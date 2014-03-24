@@ -278,7 +278,7 @@ namespace DeedDrafter
       }
       set
       {
-        if (_parameter2 != null)
+        if (_parameter2 != null && value != null)
         {
           _parameter2 = null;
           NotifyPropertyChanged("Parameter2");
@@ -333,49 +333,38 @@ namespace DeedDrafter
       }
       else
       {
-        if (_radius == null)
-        {
-          if (isDistance || (distance != null))
-            _distance = distance;
-          _parameter2 = null;
-        }
-        else
-        {
-          _distance = null;
-          _parameter2 = distance;
-        }
         _arcLength = null;
         _arcLengthValue = null;
-        _minorCurve = !isNegative;
 
         bool propertyError = dblValue <= 0.0 || error;
-        if (isDistance)
+        if (_radius == null)
         {
+          // if we are setting null to a null cell, do nothing. User may have clicked in this cell and lost focus
+          if (string.IsNullOrWhiteSpace(value) && string.IsNullOrWhiteSpace(_parameter2) && !isDistance)
+            return;
+
           DistanceError = propertyError;
           Parameter2Error = false;
 
-          if (string.IsNullOrWhiteSpace(Parameter2))
-          {
-            if (propertyError)
-              _chordLengthValue = null;
-            else
-              _chordLengthValue = dblValue;
-          }
+          _distance = distance;
+          _parameter2 = null;
+          _minorCurve = !isNegative;
+          _chordLengthValue = propertyError && string.IsNullOrWhiteSpace(Parameter2) ? null : (double?)dblValue;
         }
-        else // isParam2
+        else
         {
+          // if we are setting null to a null cell, do nothing. User may have clicked in this cell and lost focus
+          if (string.IsNullOrWhiteSpace(value) && string.IsNullOrWhiteSpace(_distance) && isDistance)
+            return;
+
           DistanceError = false;
           Parameter2Error = propertyError;
 
-          if (string.IsNullOrWhiteSpace(Distance))
-          {
-            if (propertyError)
-              _chordLengthValue = null;
-            else
-              _chordLengthValue = dblValue;
-          }
+          _distance = null;
+          _parameter2 = distance;
+          _minorCurve = !isNegative;
+          _chordLengthValue = propertyError && string.IsNullOrWhiteSpace(Distance) ? null : (double?)dblValue;
         }
-
       }
 
       NotifyDistancePropertyChanged();
@@ -393,13 +382,21 @@ namespace DeedDrafter
           else
             _parameter2 = null;
           _distance = null;
+
+          // Transfer error notification from distance => param2
+          Parameter2Error = DistanceError;
+          DistanceError = false;
         }
         else if ((_radius != null) && string.IsNullOrWhiteSpace(value))
         {
           _distance = _parameter2;
           _parameter2 = null;
 
-          value = null; // get the same behavior for white sapce as null (ie, pressing delete on field)
+          // Transfer error notification from param2 => distance
+          DistanceError = Parameter2Error;
+          Parameter2Error = false;
+
+          value = null; // get the same behavior for white space as null (ie, pressing delete on field)
         }
 
         bool error;
@@ -1188,6 +1185,37 @@ namespace DeedDrafter
       }
     }
 
+    double _ratio = 0;
+    public double MiscloseRatio
+    {
+      get { return _ratio; }
+      set
+      {
+        _ratio = value;
+        NotifyPropertyChanged("MiscloseRatio");
+        NotifyPropertyChanged("FormatedMiscloseRatio");
+        NotifyPropertyChanged("MiscloseRatioLabel");
+      }
+    }
+    const double _lowRatio = 10;
+    const double _highRatio = 100000;
+    public string FormatedMiscloseRatio
+    {
+      get
+      {
+        if (_ratio < _lowRatio) return "";
+        return _ratio >= _highRatio ? (string)Application.Current.FindResource("strHigh") : "1:" + _ratio.ToString("F0"); 
+      }
+    }
+    public string MiscloseRatioLabel
+    {
+      get
+      {
+        if (_ratio < _lowRatio) return "";
+        return _ratio >= _highRatio ? (string)Application.Current.FindResource("strAccuracy") : (string)Application.Current.FindResource("strRatio"); 
+      }
+    }
+
     public string ParcelName
     {
       get { return _parcelName == null ? _planName : _parcelName; }
@@ -1233,7 +1261,7 @@ namespace DeedDrafter
       }
     }
 
-    public void SetMiscloseInfo(double bearing, double distance, double area)
+    public void SetMiscloseInfo(double bearing, double distance, double area, double ratio)
     {
       if ((bearing == 0) && (distance == 0) && (area == 0))
       {
@@ -1245,6 +1273,7 @@ namespace DeedDrafter
         MiscloseBearing = bearing;
         MiscloseDistance = distance;
         MiscloseArea = area;
+        MiscloseRatio = ratio;
         MiscloseError = false;
       }
     }

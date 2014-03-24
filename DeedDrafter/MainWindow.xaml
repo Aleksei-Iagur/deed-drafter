@@ -150,97 +150,50 @@
       <esri:TextSymbol x:Key="TextSymbol" FontSize="14"/>
       <SolidColorBrush x:Key="GridCellErrorColor" Color="Red"/>
       <SolidColorBrush x:Key="GridCellOkColor" Color="Black"/>
-    </Grid.Resources>
 
-    <esri:Map x:Name="ParcelMap" WrapAround="True" 
-                DataContext="{StaticResource resParcelData}"
-                MouseRightButtonDown="ParcelMap_MouseRightButtonDown"
-                MouseRightButtonUp="ParcelMap_MouseRightButtonUp"
-                MouseMove="ParcelMap_MouseMove"
-                KeyUp="ParcelMap_KeyUp"
-                MouseClick="QueryPoint_MouseClick">
-      <esri:GraphicsLayer ID="SketchLineGraphicLayer"/>
-      <esri:GraphicsLayer ID="SketchPointGraphicLayer"/>
-      <esri:ElementLayer ID="myElementLayer">
-        <esri:ElementLayer.Children>
-          <Grid Name="LineEditElements" esri:ElementLayer.Envelope="0,0,0,0" Visibility="Hidden" MouseEnter="LineEditElements_MouseEnter" MouseLeave="LineEditElements_MouseLeave">
-
-            <Grid.Triggers>
-              <EventTrigger RoutedEvent="MouseEnter">
-                <EventTrigger.Actions>
-                  <BeginStoryboard>
-                    <Storyboard>
-                      <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                       From="0.0" To="2.0" BeginTime="0:0:1" Duration="0:0:0.3"/>
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
-                        <DiscreteObjectKeyFrame KeyTime="0:0:0">
-                          <DiscreteObjectKeyFrame.Value>
-                            <Visibility>Visible</Visibility>
-                          </DiscreteObjectKeyFrame.Value>
-                        </DiscreteObjectKeyFrame>
-                      </ObjectAnimationUsingKeyFrames>
-                    </Storyboard>
-                  </BeginStoryboard>
-                </EventTrigger.Actions>
-              </EventTrigger>
-              <EventTrigger RoutedEvent="MouseLeave">
-                <EventTrigger.Actions>
-                  <BeginStoryboard>
-                    <Storyboard>
-                      <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                       From="1.0" To="0.0" Duration="0:0:1" BeginTime="0:0:1"/>
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
-                        <DiscreteObjectKeyFrame KeyTime="0:0:2">
-                          <DiscreteObjectKeyFrame.Value>
-                            <Visibility>Hidden</Visibility>
-                          </DiscreteObjectKeyFrame.Value>
-                        </DiscreteObjectKeyFrame>
-                      </ObjectAnimationUsingKeyFrames>
-                    </Storyboard>
-                  </BeginStoryboard>
-                </EventTrigger.Actions>
-              </EventTrigger>
-            </Grid.Triggers>
-
-            <Rectangle Fill="AliceBlue" Stroke="Gray"  RadiusX="3" RadiusY="3" Margin="0,0,0,0" Opacity="0.75"/>
-            <StackPanel Orientation="Horizontal">
-              <StackPanel Margin="2">
-                <TextBlock Text="Bearing"/>
-                <TextBox x:Name="SelectedLineBearing" Height="20" Text="{Binding SelectedLine.Bearing}" KeyUp="MapEdit_KeyUp" LostFocus="MapEdit_LostFocus">
-                  <TextBox.Style>
-                    <Style TargetType="{x:Type TextBox}">
-                      <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedLine.BearingError}" Value="False">
-                          <Setter Property="Foreground" Value="{StaticResource GridCellOkColor}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding SelectedLine.BearingError}" Value="True">
-                          <Setter Property="Foreground" Value="{StaticResource GridCellErrorColor}"/>
-                        </DataTrigger>
-                      </Style.Triggers>
-                    </Style>
-                  </TextBox.Style>
-                </TextBox>
-              </StackPanel>
-              <StackPanel Margin="2">
-                <TextBlock Text="Distance"/>
-                <TextBox Height="20" Text="{Binding SelectedLine.Distance}" KeyUp="MapEdit_KeyUp" LostFocus="MapEdit_LostFocus">
-                  <TextBox.Style>
-                    <Style TargetType="{x:Type TextBox}">
-                      <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedLine.DistanceError}" Value="False">
-                          <Setter Property="Foreground" Value="{StaticResource GridCellOkColor}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding SelectedLine.DistanceError}" Value="True">
-                          <Setter Property="Foreground" Value="{StaticResource GridCellErrorColor}"/>
-                        </DataTrigger>
-                      </Style.Triggers>
-                    </Style>
-                  </TextBox.Style>
-                </TextBox>
-              </StackPanel>
-              <StackPanel Margin="2">
-                <TextBlock Text="Radius"/>
-                <TextBox Height="20" Text="{Binding SelectedLine.Radius}" KeyUp="MapEdit_KeyUp" LostFocus="MapEdit_LostFocus">
+      <DataTemplate x:Key="InfoWindowTemplate">
+        <Grid MouseEnter="ParcelLineInfoWindow_MouseEnter" 
+              FocusManager.FocusedElement="{Binding ElementName=SelectedLineBearing}"
+              MouseLeave="ParcelLineInfoWindow_MouseLeave">
+          <Rectangle Fill="AliceBlue" Stroke="Gray" RadiusX="3" RadiusY="3" Margin="0,0,0,0" Opacity="0.75"/>
+          <StackPanel Orientation="Horizontal">
+            <StackPanel Margin="2">
+              <TextBlock Text="Bearing"/>
+              <TextBox x:Name="SelectedLineBearing" Height="20" Text="{Binding SelectedLine.Bearing}" KeyUp="MapEdit_KeyUp" LostFocus="MapEdit_LostFocus">
+                <TextBox.Style>
+                  <Style TargetType="{x:Type TextBox}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding SelectedLine.BearingError}" Value="False">
+                        <Setter Property="Foreground" Value="{StaticResource GridCellOkColor}"/>
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding SelectedLine.BearingError}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource GridCellErrorColor}"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBox.Style>
+              </TextBox>
+            </StackPanel>
+            <StackPanel Margin="2">
+              <TextBlock Text="Distance"/>
+              <TextBox Height="20" Text="{Binding SelectedLine.Distance}" KeyUp="MapEdit_KeyUp" LostFocus="MapEdit_LostFocus">
+                <TextBox.Style>
+                  <Style TargetType="{x:Type TextBox}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding SelectedLine.DistanceError}" Value="False">
+                        <Setter Property="Foreground" Value="{StaticResource GridCellOkColor}"/>
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding SelectedLine.DistanceError}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource GridCellErrorColor}"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBox.Style>
+              </TextBox>
+            </StackPanel>
+            <StackPanel Margin="2">
+              <TextBlock Text="Radius"/>
+              <TextBox Height="20" Text="{Binding SelectedLine.Radius}" KeyUp="MapEdit_KeyUp" LostFocus="MapEdit_LostFocus">
                 <TextBox.Style>
                   <Style TargetType="{x:Type TextBox}">
                     <Style.Triggers>
@@ -253,35 +206,63 @@
                     </Style.Triggers>
                   </Style>
                 </TextBox.Style>
-                </TextBox>
-              </StackPanel>
-              <StackPanel Margin="2">
-                <TextBlock Text="Chord"/>
-                <TextBox Height="20" Text="{Binding SelectedLine.Parameter2}" KeyUp="MapEdit_KeyUpChord" LostFocus="MapEdit_LostFocus">
-                  <TextBox.Style>
-                    <Style TargetType="{x:Type TextBox}">
-                      <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedLine.Parameter2Error}" Value="False">
-                          <Setter Property="Foreground" Value="{StaticResource GridCellOkColor}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding SelectedLine.Parameter2Error}" Value="True">
-                          <Setter Property="Foreground" Value="{StaticResource GridCellErrorColor}"/>
-                        </DataTrigger>
-                      </Style.Triggers>
-                    </Style>
-                  </TextBox.Style>
-                </TextBox>
-              </StackPanel>
+              </TextBox>
             </StackPanel>
-          </Grid>
-        </esri:ElementLayer.Children>
-      </esri:ElementLayer>
-      
+            <StackPanel Margin="2">
+              <TextBlock Text="Chord"/>
+              <TextBox Height="20" Text="{Binding SelectedLine.Parameter2}" KeyUp="MapEdit_KeyUpChord" LostFocus="MapEdit_LostFocus">
+                <TextBox.Style>
+                  <Style TargetType="{x:Type TextBox}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding SelectedLine.Parameter2Error}" Value="False">
+                        <Setter Property="Foreground" Value="{StaticResource GridCellOkColor}"/>
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding SelectedLine.Parameter2Error}" Value="True">
+                        <Setter Property="Foreground" Value="{StaticResource GridCellErrorColor}"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBox.Style>
+              </TextBox>
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </DataTemplate>
+
+    </Grid.Resources>
+
+    <esri:Map x:Name="ParcelMap" WrapAround="True" 
+                Progress="ParcelMap_Progress"
+                UseAcceleratedDisplay="True"
+                DataContext="{StaticResource resParcelData}"
+                MouseRightButtonDown="ParcelMap_MouseRightButtonDown"
+                MouseRightButtonUp="ParcelMap_MouseRightButtonUp"
+                KeyUp="ParcelMap_KeyUp"
+                MouseMove="ParcelMap_MouseMove"
+                ExtentChanged="ParcelMap_ExtentChanged"
+                MouseClick="MapPoint_MouseClick">
+      <esri:GraphicsLayer ID="SketchLineGraphicLayer" 
+                MouseEnter="LineGraphicsLayer_MouseEnter"/>
+      <esri:GraphicsLayer ID="SketchPointGraphicLayer"/>
     </esri:Map>
+    
+    <esri:InfoWindow x:Name="ParcelLineInfoWindow"
+                Padding="0"
+                CornerRadius="0"   
+                Map="{Binding ElementName=ParcelMap}" 
+                BorderBrush="AliceBlue"
+                Background="#77919191"
+                ContentTemplate="{StaticResource InfoWindowTemplate}"
+                MouseLeftButtonUp="ParcelLineInfoWindow_MouseLeftButtonUp" />
+
+    <Viewbox Name="DFProgressor" Width="30" Height="30" Margin="20" Visibility="Hidden"
+                HorizontalAlignment="Left" VerticalAlignment="Bottom">
+      <local:CircularProgressBar />
+    </Viewbox>
 
     <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
       <Grid x:Name="MainControl" Background="#77919191" HorizontalAlignment="Left" Margin="10,5,5,5">
-        <Rectangle Fill="AliceBlue" Stroke="Gray"  RadiusX="3" RadiusY="3" Margin="0,0,0,0" Opacity="0.75"/>
+        <Rectangle Fill="AliceBlue" Stroke="Gray" RadiusX="3" RadiusY="3" Margin="0,0,0,0" Opacity="0.75"/>
         <StackPanel Orientation="Horizontal">
           <Image Source="images/CadastralFabric32.png" Stretch="None" Margin="5"/>
           <StackPanel>
@@ -520,6 +501,10 @@
                           <TextBlock Text=" Distance " Foreground="Black" FontSize="10"/>
                           <TextBlock Text="{Binding MiscloseDistance, StringFormat=F2}" FontWeight="Bold" Foreground="Black" FontSize="10"/>
                           <TextBlock Text="{Binding DistanceUnit}" Foreground="Black" FontSize="10" Margin="2,0"/>
+                          <TextBlock Text=" " Foreground="Black" FontSize="10"/>
+                          <TextBlock Text="{Binding MiscloseRatioLabel}" Foreground="Black" FontSize="10"/>
+                          <TextBlock Text=" " Foreground="Black" FontSize="10"/>
+                          <TextBlock Text="{Binding FormatedMiscloseRatio}" FontWeight="Bold" Foreground="Black" FontSize="10"/>
                         </StackPanel>
                         <TextBlock Text="Misclose not calculated" VerticalAlignment="Center" Foreground="Black" FontSize="10" Visibility="{Binding MiscloseError, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -542,7 +527,7 @@
                   </Grid>
                 </Expander>
                 <Expander x:Name="PDE_Tools" Cursor="Hand"  
-                	                           Header="Parcel Tools" Background="#FFD6EBE6">
+                                             Header="Parcel Tools" Background="#FFD6EBE6">
                   <Grid Margin="5,0" DataContext="{StaticResource resParcelData}">
                     <Rectangle Fill="White" Stroke="Gray" RadiusX="0" RadiusY="0"/>
                     <StackPanel Margin="5">
@@ -584,7 +569,7 @@
                   </Grid>
                 </Expander>
                 <Expander x:Name="PDE_Share" Cursor="Hand"  
-                	                           Header="Share" Background="#FFD6EBE6">
+                                             Header="Share" Background="#FFD6EBE6">
                   <Grid Margin="5,0">
                     <Rectangle Fill="White" Stroke="Gray" RadiusX="0" RadiusY="0"/>
                     <StackPanel Margin="5">

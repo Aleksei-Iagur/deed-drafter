@@ -292,6 +292,29 @@ namespace DeedDrafter
     double _moveRotation = 1;
     private void ParcelMap_MouseMove(object sender, MouseEventArgs e)
     {
+      if (ParcelLineInfoWindow.IsOpen == true &&
+          ParcelLineInfoWindow.Visibility == System.Windows.Visibility.Visible)
+      {
+        const double hideDistance = 25;
+        double width = ParcelLineInfoWindow.ActualWidth;
+        double height = ParcelLineInfoWindow.ActualHeight;
+
+        var anchorScreenPoint = ParcelMap.MapToScreen(ParcelLineInfoWindow.Anchor);
+        double x1 = anchorScreenPoint.X - width/2 - hideDistance;
+        double y1 = anchorScreenPoint.Y - height - hideDistance - 10; // -ve for info indicator
+        double x2 = anchorScreenPoint.X + width/2 + hideDistance;
+        double y2 = anchorScreenPoint.Y + hideDistance;
+        var envelope = new ESRI.ArcGIS.Client.Geometry.Envelope(x1, y1, x2, y2);
+
+        Point pointLoc = e.GetPosition(this);
+        if (!envelope.Intersects(new ESRI.ArcGIS.Client.Geometry.Envelope(pointLoc.X, pointLoc.Y, pointLoc.X, pointLoc.Y)))
+        {
+          ParcelLineInfoWindow.IsOpen = false;
+          ParcelMap.Focus();  // Cause any non-committed cell in the popup window to lose its focus. This will commit the cell.
+
+        }
+      }
+
       if ((_srPoint == null) || !PDE_Tools.IsExpanded)
         return;
 

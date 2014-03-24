@@ -24,6 +24,10 @@
 
   <sys:String x:Key="strLayer">Layer</sys:String>
 
+  <sys:String x:Key="strHigh">High</sys:String>
+  <sys:String x:Key="strRatio">Ratio</sys:String>
+  <sys:String x:Key="strAccuracy">Accuracy</sys:String>
+
   <sys:String x:Key="strMetric">Square Meters</sys:String>
   <sys:String x:Key="strSqFoot">Square Feet</sys:String>
   <sys:String x:Key="strSqFootUS">Square US Feet</sys:String>
@@ -38,7 +42,7 @@
   <sys:String x:Key="strConfigReadError">Unable to start Deed Drafter because there is a problem reading configuration file.</sys:String>
   <sys:String x:Key="strQueryLabel">Find current location or search for Parcel ID, Subdivision/Condo Name.</sys:String>
   <sys:String x:Key="strOutlookStartError">Unable to start outlook as a mail client.</sys:String>
-  <sys:String x:Key="strDotNetVersionError">Deed Drafter needs .NET version 4.5 or greater</sys:String>
+  <sys:String x:Key="strDotNetVersionError">Deed Drafter needs .NET version 4.5 or greater.</sys:String>
 
   <sys:String x:Key="strGeometryServiceFailed">Geometry service failed</sys:String>
   <sys:String x:Key="strQueryServiceFailed">Query failed</sys:String>

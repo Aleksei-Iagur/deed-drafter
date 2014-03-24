@@ -3,6 +3,9 @@ using System.Windows;
 using System.Windows.Input;
 using ESRI.ArcGIS.Client;
 using ESRI.ArcGIS.Client.Tasks;
+using ESRI.ArcGIS.Client.Geometry;
+using System.Collections.Generic;
+using System.Windows.Media;
 
 /* DeedDrafter revisions:
  * 
@@ -10,6 +13,13 @@ using ESRI.ArcGIS.Client.Tasks;
  * 10.2.0.1  Correct line scaling when base map was not in meters or WebMercator (ie, in feet)
  *           Error 400, when operational lay does not contain OBJECTID field (ie, when it was fully qualified)
  *           Support vertical datum => for operational layer / unit support
+ * 10.2.1.0  Upgraded RunTime to 10.2 (from RunTime 1.0, aka 3.1.0.473)
+ *           Added new feature layer type which supports feature server layers
+ *           Default the "type" property base on the URL. FeatureServer => feature, MapService => dynamic, ImageService => image. No default for tiled.
+ *           Switched to accelerated display
+ *           Implemented InfoWindow for onscreen parcel line entry (previous method didn't support accelerated display)
+ *           Added misclose ratio to UI
+ *           Added a progressor circle
  */
 
 namespace DeedDrafter
@@ -71,7 +81,6 @@ namespace DeedDrafter
       ParcelLines.MaxHeight = _xmlConfiguation.MaxGridHeight;
 
       // insert layer before [graphical] layers defined in xaml
-
       Int32 layerIndex = 0;
       String lastUnit = "";
       foreach (LayerDefinition definition in xmlConfiguation.DisplayLayers)
@@ -85,6 +94,17 @@ namespace DeedDrafter
           ParcelMap.Layers.Insert(layerIndex++, dynamicMS);
           if ((dynamicMS.Units != null) && (dynamicMS.Units != "") && !xmlConfiguation.HasSpatialReferenceUnit)
             lastUnit = dynamicMS.Units;
+        }
+
+        if (definition.Type == "feature")
+        {
+          FeatureLayer featureMS = new FeatureLayer();
+          featureMS.Url = definition.Url + "/" + definition.Id.ToString();
+          featureMS.ID = definition.Id;
+          featureMS.InitializationFailed += Layer_InitializationFailed;
+          featureMS.Mode = FeatureLayer.QueryMode.OnDemand;
+          ParcelMap.Layers.Insert(layerIndex++, featureMS);
+          // FOOBAR FeatureLayer does not support unit?
         }
 
         if (definition.Type == "tiled")
@@ -111,43 +131,24 @@ namespace DeedDrafter
 
       if (!xmlConfiguation.HasSpatialReferenceUnit)
         xmlConfiguation.MapSpatialReferenceUnits = lastUnit;
-
-      if (ParcelMap.Extent == null)
-        ParcelMap.Extent = new ESRI.ArcGIS.Client.Geometry.Envelope();
-
+     
+      ESRI.ArcGIS.Client.Geometry.Envelope extent = null;
       if (xmlConfiguation.IsExtentSet())
-      {
-        ParcelMap.Extent.XMin = xmlConfiguation.XMin;
-        ParcelMap.Extent.XMax = xmlConfiguation.XMax;
-        ParcelMap.Extent.YMin = xmlConfiguation.YMin;
-        ParcelMap.Extent.YMax = xmlConfiguation.YMax;
-      }
+        extent = new ESRI.ArcGIS.Client.Geometry.Envelope(xmlConfiguation.XMin, xmlConfiguation.YMin, xmlConfiguation.XMax, xmlConfiguation.YMax);
       else
-      {
         // Map will not zoom to, etc with out some value set.
-        // Ideally we would like to set the extent to the full extent
-        // of the first layer, but since they layer has hot been drawn yet
-        // null is returned.
-        ParcelMap.Extent.XMin = 100;
-        ParcelMap.Extent.XMax = 100;
-        ParcelMap.Extent.YMin = 100;
-        ParcelMap.Extent.YMax = 100;
-      }
-
+        // Ideally we would like to set the extent to the full extent of the first
+        // layer, but since they layer has hot been drawn yet null is returned.
+        extent = new ESRI.ArcGIS.Client.Geometry.Envelope(100, 100, 100, 100);
+      
       // if zero, the first inserted layer is used
       if ((xmlConfiguation.SpatialReferenceWKT != null) && (xmlConfiguation.SpatialReferenceWKT != ""))
-      {
-        if (ParcelMap.Extent.SpatialReference == null)
-          ParcelMap.Extent.SpatialReference = new ESRI.ArcGIS.Client.Geometry.SpatialReference();
-        ParcelMap.Extent.SpatialReference.WKT = xmlConfiguation.SpatialReferenceWKT;
-      }
+        extent.SpatialReference = new ESRI.ArcGIS.Client.Geometry.SpatialReference(xmlConfiguation.SpatialReferenceWKT);
       else if (xmlConfiguation.SpatialReferenceWKID != 0)
-      {
-        if (ParcelMap.Extent.SpatialReference == null)
-          ParcelMap.Extent.SpatialReference = new ESRI.ArcGIS.Client.Geometry.SpatialReference();
-        ParcelMap.Extent.SpatialReference.WKID = xmlConfiguation.SpatialReferenceWKID;
-      }
+        extent.SpatialReference = new ESRI.ArcGIS.Client.Geometry.SpatialReference(xmlConfiguation.SpatialReferenceWKID);
 
+      ParcelMap.Extent = extent;
+     
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
       parcelData.Configuration = xmlConfiguation;
 
@@ -162,8 +163,10 @@ namespace DeedDrafter
     }
 
     IdentifyWindow _identifyDialog = null;
-    private void QueryPoint_MouseClick(object sender, ESRI.ArcGIS.Client.Map.MouseEventArgs e)
+    private void MapPoint_MouseClick(object sender, ESRI.ArcGIS.Client.Map.MouseEventArgs e)
     {
+      ParcelLineInfoWindow.IsOpen = false;
+
       if (DPE_ParcelEntry.IsExpanded || (!PDE_Tools.IsExpanded && !PDE_Find.IsExpanded && !PDE_Share.IsExpanded))
         ParcelTool(e.MapPoint);
       else if (PDE_Tools.IsExpanded)
@@ -248,6 +251,89 @@ namespace DeedDrafter
         MessageBox.Show((string)Application.Current.FindResource("strHelpFileMissing"), (string)Application.Current.FindResource("strTitle"));
 
       // System.Diagnostics.Process.Start(@"http://esriurl.com/DeedDrafter");
+    }
+
+    private void ParcelMap_ExtentChanged(object sender, ExtentEventArgs e)
+    {
+      if (System.Diagnostics.Debugger.IsAttached)
+        ShowProjectedExtent(sender as Map);
+
+      // If we have zoomed less than the min resolution, zoom out a slight amount of the min to ensure display is drawn
+      double minRes = ParcelMap.MinimumResolution * 1.0001;
+      if (ParcelMap.Resolution <= minRes)
+        ParcelMap.ZoomToResolution(minRes);
+    }
+
+    private void ShowProjectedExtent(Map thisMap)
+    {
+      if (thisMap != null)
+        System.Console.WriteLine("Current extent {0}", thisMap.Extent);
+
+      if (_xmlConfiguation.OutputSpatialReference == null || thisMap == null)
+          return;
+
+      // if we are in Web Mercator, project the extent back into the output spatial reference.
+      //
+      // This is for debugging only.
+
+      GeometryService geometryServiceProject = new GeometryService(_xmlConfiguation.GeometryServerUrl);
+      if (geometryServiceProject == null)
+        return;
+
+      geometryServiceProject.ProjectCompleted += GeometryService_CalculateOutputCoords;
+      geometryServiceProject.Failed += GeometryService_FailedWebMercatorScale;
+      geometryServiceProject.CancelAsync();
+
+      var graphicList = new List<Graphic>();
+
+      double x = thisMap.Extent.XMin;
+      double y = thisMap.Extent.YMin;
+      MapPoint minPoint = new MapPoint(x, y, ParcelMap.SpatialReference);
+      Graphic minGraphic = new Graphic();
+      minGraphic.Symbol = LayoutRoot.Resources["DefaultMarkerSymbol"] as ESRI.ArcGIS.Client.Symbols.Symbol;
+      minGraphic.Geometry = minPoint;
+      graphicList.Add(minGraphic);
+
+      x = thisMap.Extent.XMax;
+      y = thisMap.Extent.YMax;
+      MapPoint maxPoint = new MapPoint(x, y, ParcelMap.SpatialReference);
+      Graphic maxGraphic = new Graphic();
+      maxGraphic.Symbol = LayoutRoot.Resources["DefaultMarkerSymbol"] as ESRI.ArcGIS.Client.Symbols.Symbol;
+      maxGraphic.Geometry = maxPoint;
+      graphicList.Add(maxGraphic);
+
+      if (_xmlConfiguation.HasDatumTransformation)
+      {
+        DatumTransform transformation = new DatumTransform();
+        if (_xmlConfiguation.DatumTransformationWKID > 0)
+          transformation.WKID = _xmlConfiguation.DatumTransformationWKID;
+        else
+          transformation.WKT = _xmlConfiguation.DatumTransformationWKT;
+
+        geometryServiceProject.ProjectAsync(graphicList, _xmlConfiguation.OutputSpatialReference,
+          transformation, _xmlConfiguation.DatumTransformationForward);
+      }
+      else
+        geometryServiceProject.ProjectAsync(graphicList, _xmlConfiguation.OutputSpatialReference);
+    }
+
+    void GeometryService_CalculateOutputCoords(object sender, GraphicsEventArgs args)
+    {
+      if (args == null || args.Results == null || args.Results.Count != 2)
+        return; // should not occur
+
+      MapPoint minPoint = (MapPoint)args.Results[0].Geometry;
+      MapPoint maxPoint = (MapPoint)args.Results[1].Geometry;
+
+      System.Console.WriteLine("Projected extent Min:{0},{1} Max:{2},{3}", minPoint.X, minPoint.Y, maxPoint.X, maxPoint.Y);
+    }
+
+    private void ParcelMap_Progress(object sender, ProgressEventArgs e)
+    {
+      if (e == null || sender == null)
+        DFProgressor.Visibility = System.Windows.Visibility.Hidden;
+      else 
+        DFProgressor.Visibility = e.Progress == 100 ? System.Windows.Visibility.Hidden : System.Windows.Visibility.Visible;
     }
   }
 }

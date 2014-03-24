@@ -9,7 +9,7 @@ namespace DeedDrafter
 {
   /// <summary>
   // Code behind for the identify window.
-  // This dialog is create in MainWindow::QueryPoint_MouseClick
+  // This dialog is create in MainWindow::MapPoint_MouseClick
   /// </summary>
   /// 
   public partial class IdentifyWindow : Window

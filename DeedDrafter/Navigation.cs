@@ -257,8 +257,10 @@ namespace DeedDrafter
       {
         if (ParcelMap.SpatialReference.Equals(findResults[index].Geometry.SpatialReference))
         {
-          ParcelMap.PanTo(findResults[index].Geometry);
           ParcelMap.ZoomTo(findResults[index].Geometry.Extent.Expand(1.5));
+
+          // If we zoom into far, the parcel might fall below the min resolution.
+          // ParcelMap_ExtentChanged will correct this.
         }
         else
           MessageBox.Show((string)Application.Current.FindResource("strQueryServiceSRNotEqual"), (string)Application.Current.FindResource("strNavigationFailed"));

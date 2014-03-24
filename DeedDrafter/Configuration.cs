@@ -909,8 +909,6 @@ namespace DeedDrafter
         if (displayFields == "")
           displayFields = searchFields;
 
-        GetValue(amlAttributes, "type", out type);
-
         if (!GetValue(amlAttributes, "id", out id))
         {
           System.Diagnostics.Debug.WriteLine("Missing ID on layer. Layer {0} skipped.", name);
@@ -923,6 +921,21 @@ namespace DeedDrafter
         {
           System.Diagnostics.Debug.WriteLine("Missing URL on layer. Layer {0} skipped.", name);
           continue;
+        }
+
+        if (!GetValue(amlAttributes, "type", out type))
+        {
+          if (url.Contains(@"/FeatureServer"))
+            type = "feature";
+          else if (url.Contains(@"/MapService"))
+            type = "dynamic";
+          else if (url.Contains(@"/ImageService"))
+            type = "image";
+
+          // Since tiled services use a MapService URL, we can't default to this. Tiled services 
+          // are generally stated as a base layer (in this app), where tiled is the only option. Thus,
+          // define your tile service as a base layer. If it needs to be an operational layer, set its
+          // type to "tiled".
         }
 
         LayerDefinition layerDef = new LayerDefinition(url, id, displayFields, searchFields, name, tooltip, type);

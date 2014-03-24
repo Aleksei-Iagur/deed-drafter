@@ -509,8 +509,6 @@ namespace DeedDrafter
       graphic.Geometry = line;
       graphic.Attributes.Add("GridIndex", gridIndex);
 
-      graphic.MouseMove += graphic_MouseMove;
-
       if (lineRow.Category == LineCategory.OriginConnection)
         graphic.Symbol = LayoutRoot.Resources["OriginConnectionLineSymbol"] as Symbol;
       else
@@ -574,25 +572,28 @@ namespace DeedDrafter
       return !(PDE_Share.IsExpanded || PDE_Tools.IsExpanded || PDE_Find.IsExpanded);
     }
 
-    void graphic_MouseMove(object sender, MouseEventArgs e)
+    #region In-map parcel line entry
+    private void LineGraphicsLayer_MouseEnter(object sender, GraphicMouseEventArgs e)
     {
-      // We need to kill any running animation, otherwise our settings below will not take effect;
-      LineEditElements.BeginAnimation(Grid.VisibilityProperty, null);
-
       // only show "quick" line change dialog if Parcel entry mode is open, 
       // or all other modes are closed.
       if (!IsParcelEntryMode())
       {
-        LineEditElements.Visibility = System.Windows.Visibility.Hidden;
+        ParcelLineInfoWindow.IsOpen = false; 
         return;
       }
 
       Point pointLoc = e.GetPosition(this);
       ESRI.ArcGIS.Client.Geometry.MapPoint loc = ParcelMap.ScreenToMap(pointLoc);
 
-      Graphic graphic = sender as Graphic;
+      GraphicsLayer graphicLayer = sender as GraphicsLayer;
 
-      ESRI.ArcGIS.Client.Geometry.Envelope envelope = new ESRI.ArcGIS.Client.Geometry.Envelope(loc.X, loc.Y, loc.X, loc.Y);
+      IEnumerable<Graphic> selected = graphicLayer.FindGraphicsInHostCoordinates(pointLoc);
+      if (selected == null)
+        return;
+      Graphic graphic = selected.FirstOrDefault();
+      if (graphic == null)
+        return;
 
       object gridIndexObj;
       if (!graphic.Attributes.TryGetValue("GridIndex", out gridIndexObj))
@@ -606,11 +607,13 @@ namespace DeedDrafter
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
       parcelData.SelectedRow = gridIndex;
 
-      UIElement uiElement = LineEditElements as UIElement;
-      ElementLayer.SetEnvelope(uiElement, envelope);
+      ParcelLineInfoWindow.Anchor = loc;   
+      ParcelLineInfoWindow.IsOpen = true;
 
-      LineEditElements.Visibility = System.Windows.Visibility.Visible;
-      LineEditElements.Opacity = 1.0;
+      // Since a ContentTemplate is defined, Content will define the DataContext for the ContentTemplate
+      ParcelLineInfoWindow.Content = ParcelGridContainer.DataContext;
+
+      SetFocusToFirstPopupCell(false);
     }
 
     private void MapEdit_LostFocus(object sender, RoutedEventArgs e)
@@ -635,27 +638,37 @@ namespace DeedDrafter
 
     private void MapEdit_KeyUpChord(object sender, KeyEventArgs e)
     {
-      if (e.Key == Key.Enter)
+      if (ParcelLineInfoWindow.IsOpen &&
+          ParcelLineInfoWindow.Visibility == System.Windows.Visibility.Visible && 
+          e.Key == Key.Enter)
       {
-        CalculateAndAddLineGraphics();
-
         ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
         if (parcelData.IsLastRowSelected())
         {
-          // We need to kill any running animation, otherwise our settings below will not take effect;
-          LineEditElements.BeginAnimation(Grid.VisibilityProperty, null);
+          // Code to close popup edit dialog
+          //
+          // ParcelLineInfoWindow.IsOpen = false;
+          // ParcelMap.Focus();  // Allow ParcelLineInfoWindow_MouseEnter to receive event to reopen
 
-          LineEditElements.Visibility = System.Windows.Visibility.Hidden;
+          SetFocusToFirstPopupCell(true);  // commit row (not required if closing popup)
+
+          // Add a new row to grid
+          ObservableCollection<ParcelLineRow> parcelRecordData = ParcelLines.ItemsSource as ObservableCollection<ParcelLineRow>;
+          parcelData.SelectedRow = parcelRecordData.Count;
         }
+        else
+          SetFocusToFirstPopupCell(false);
+
+        CalculateAndAddLineGraphics();
       }
     }
 
-    private void LineEditElements_MouseEnter(object sender, MouseEventArgs e)
+    private void ParcelLineInfoWindow_MouseEnter(object sender, MouseEventArgs e)
     {
       ParcelMap.ZoomFactor = 1.0; // Turn off any zooming when using onscreen entry.
     }
 
-    private void LineEditElements_MouseLeave(object sender, MouseEventArgs e)
+    private void ParcelLineInfoWindow_MouseLeave(object sender, MouseEventArgs e)
     {
       ParcelMap.ZoomFactor = _defaultMapZoomFactor;
     }
@@ -663,7 +676,8 @@ namespace DeedDrafter
     // show quick line edit control
     private void ParcelMap_KeyUp(object sender, KeyEventArgs e)
     {
-      if (LineEditElements.Visibility == System.Windows.Visibility.Visible)
+      if (ParcelLineInfoWindow.IsOpen && 
+          ParcelLineInfoWindow.Visibility == System.Windows.Visibility.Visible)
         return; // We don't want to show any new dialog when editing parcel lines
 
       if ((e != null) && (e.Key != Key.Enter))
@@ -679,17 +693,56 @@ namespace DeedDrafter
       ParcelData parcelData = ParcelGridContainer.DataContext as ParcelData;
       parcelData.SelectedRow = gridIndex;
 
-      UIElement uiElement = LineEditElements as UIElement;
-      ElementLayer.SetEnvelope(uiElement, envelope);
+      ParcelLineInfoWindow.Content = ParcelGridContainer.DataContext;
+      ParcelLineInfoWindow.Anchor = loc; 
+      ParcelLineInfoWindow.IsOpen = true;
 
-      // We need to kill any running animation, otherwise our settings below will not take effect;
-      LineEditElements.BeginAnimation(Grid.VisibilityProperty, null);
-
-      LineEditElements.Visibility = System.Windows.Visibility.Visible;
-      LineEditElements.Opacity = 1.0;
-
-      bool ok = SelectedLineBearing.Focus();
+      SetFocusToFirstPopupCell(true);
     }
+
+    private void SetFocusToFirstPopupCell(bool selectCell)
+    {
+      var firstFocusable = FindFirstFocusableElement(ParcelLineInfoWindow);
+      if (firstFocusable == null)
+        return;
+
+      firstFocusable.Focus();
+      if (!selectCell)
+        return;
+
+      var textbox = firstFocusable as TextBox;
+      if (textbox != null)
+        textbox.SelectAll();
+    }
+
+    private IInputElement FindFirstFocusableElement(DependencyObject obj)
+    {
+      IInputElement firstFocusable = null;
+
+      int count = VisualTreeHelper.GetChildrenCount(obj);
+      for (int i = 0; i < count && null == firstFocusable; i++)
+      {
+        DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+        IInputElement inputElement = child as IInputElement;
+        if (null != inputElement && inputElement.Focusable)
+        {
+          firstFocusable = inputElement;
+        }
+        else
+        {
+          firstFocusable = FindFirstFocusableElement(child);
+        }
+      }
+
+      return firstFocusable;
+    }
+
+    private void ParcelLineInfoWindow_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+      ParcelLineInfoWindow.IsOpen = false;
+    }
+
+    #endregion
 
     // All lines in the grid have from/to point ids. 
     // Since we a developing a grid without from/to ids in the grid
@@ -834,6 +887,7 @@ namespace DeedDrafter
         if (index++ == 0)
         {
           _calculatedPoints.Add(line.GetFrom(), _originPoint);
+          calculatedPointsLocal.Add(line.GetFrom(), _originPoint);
           startPointScaled = _originPoint;
           stopBoundaryPoint = _originPoint;
 
@@ -1076,7 +1130,7 @@ namespace DeedDrafter
         double miscloseBearingDeg = GeometryUtil.RadianToDegree(miscloseBearing);
         if (miscloseBearingDeg < 0)
           miscloseBearingDeg += 360;
-        parcelData.SetMiscloseInfo(miscloseBearingDeg, miscloseDistanceConv, area);  // automatically mark misclose error to false
+        parcelData.SetMiscloseInfo(miscloseBearingDeg, miscloseDistanceConv, area, miscloseRatio);  // automatically mark misclose error to false
       }
       else
         parcelData.MiscloseError = true;  // this will automatically zero out misclose distance/bearing/area
@@ -1410,6 +1464,9 @@ namespace DeedDrafter
         // To work around having a incorrect selection after pressing enter, just unselect all.
         ParcelLines.UnselectAllCells();
       }
+
+      if (e.Key == Key.Delete)            // Don't do this in preview key
+        CalculateAndAddLineGraphics();    // since the delete has not happened yet.
     }
 
     // Treat Enter as Tabs in grid.
@@ -1472,7 +1529,6 @@ namespace DeedDrafter
                 System.Diagnostics.Debug.Assert(false);  // why are we getting this area? Anything null?
               }
             }
-            CalculateAndAddLineGraphics();
           }
         }
       }
