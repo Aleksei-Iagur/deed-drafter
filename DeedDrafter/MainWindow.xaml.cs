@@ -20,6 +20,8 @@ using System.Windows.Media;
  *           Implemented InfoWindow for onscreen parcel line entry (previous method didn't support accelerated display)
  *           Added misclose ratio to UI
  *           Added a progressor circle
+ * 10.2.2.0  Upgraded RunTime to 10.2.2 
+ *           Removed license requirement setup
  */
 
 namespace DeedDrafter
@@ -126,7 +128,6 @@ namespace DeedDrafter
           imageS.InitializationFailed += Layer_InitializationFailed;
           ParcelMap.Layers.Insert(layerIndex++, imageS);
         }
-
       }
 
       if (!xmlConfiguation.HasSpatialReferenceUnit)

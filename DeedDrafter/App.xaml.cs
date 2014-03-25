@@ -16,7 +16,6 @@ namespace DeedDrafter
     {
       private void Application_Startup(object sender, StartupEventArgs e)
       {
-        // ArcGISRuntime.SetLicense("runtimebasic,101,rud350960092,15-oct-2014,A3CZ04S3EY8060THJ152");
         try
         {
           ArcGISRuntime.Initialize();
@@ -28,7 +27,6 @@ namespace DeedDrafter
           // Exit application
           this.Shutdown();
         }
-
       }
     }
 }
